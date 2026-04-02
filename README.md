@@ -25,9 +25,9 @@ Breathe app —> Google Sheets —> Python script extraction —> DuckDB —> db
 ### Current status
 *Where is the project… update after each session.*
 
-> **Brainstormed design with Claude. Writing ideas into README.**
+> **Extract and load working. 69 records loaded into raw_breathe in DuckDB.**
 
 ### Next action
 *Literally just the next step or concrete action to take. Not a backlog or roadmap… just the next step. Overwrite this each time I work on the project.*
 
-> **Put this into a project folder and make it a GitHub repository!**
+> **Set up dbt project and writing staging model for raw_breathe.**
