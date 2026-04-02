@@ -7,7 +7,7 @@ from google.oauth2.service_account import Credentials
 CREDENTIALS_FILE = "breathe-gcp-credentials.json"
 SHEET_NAME = "Asthma"  # update this to match your exact sheet name
 TABLE_NAME = "raw_breathe"
-DUCKDB_FILE = "breathe.duckdb"
+DUCKDB_FILE = "breathe_dev.duckdb"
 
 # --- Auth ---
 scopes = [
