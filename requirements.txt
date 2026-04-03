@@ -1,0 +1,6 @@
+gspread
+pandas
+duckdb
+google-auth
+requests
+pytest
