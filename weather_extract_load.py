@@ -58,5 +58,29 @@ def get_date_range(con):
     return result, yesterday
 
 
+def fetch_weather(start_date, end_date):
+    """Fetch hourly weather data from Open-Meteo archive API."""
+    params = {
+        "latitude": LAT,
+        "longitude": LON,
+        "start_date": start_date.isoformat(),
+        "end_date": end_date.isoformat(),
+        "hourly": "temperature_2m,relative_humidity_2m,precipitation,surface_pressure",
+        "timezone": "America/Chicago",
+        "temperature_unit": "celsius",
+    }
+    resp = requests.get(WEATHER_API, params=params, timeout=30)
+    resp.raise_for_status()
+    data = resp.json()["hourly"]
+
+    return pd.DataFrame({
+        "timestamp": pd.to_datetime(data["time"]),
+        "temperature_c": data["temperature_2m"],
+        "humidity_pct": data["relative_humidity_2m"],
+        "precipitation_mm": data["precipitation"],
+        "pressure_hpa": data["surface_pressure"],
+    })
+
+
 if __name__ == "__main__":
     pass

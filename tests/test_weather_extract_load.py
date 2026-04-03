@@ -59,3 +59,28 @@ def test_get_date_range_already_current(con):
     start, end = wel.get_date_range(con)
     assert start is None
     assert end is None
+
+
+MOCK_WEATHER_RESPONSE = {
+    "hourly": {
+        "time": ["2024-06-01T00:00", "2024-06-01T01:00"],
+        "temperature_2m": [18.5, 17.9],
+        "relative_humidity_2m": [65.0, 67.0],
+        "precipitation": [0.0, 0.1],
+        "surface_pressure": [1013.0, 1012.8],
+    }
+}
+
+
+def test_fetch_weather():
+    with patch("weather_extract_load.requests.get") as mock_get:
+        mock_get.return_value.json.return_value = MOCK_WEATHER_RESPONSE
+        mock_get.return_value.raise_for_status = MagicMock()
+        df = wel.fetch_weather(date(2024, 6, 1), date(2024, 6, 1))
+
+    assert len(df) == 2
+    assert list(df.columns) == [
+        "timestamp", "temperature_c", "humidity_pct", "precipitation_mm", "pressure_hpa"
+    ]
+    assert df["temperature_c"].iloc[0] == 18.5
+    assert df["humidity_pct"].iloc[1] == 67.0
