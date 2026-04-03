@@ -141,5 +141,22 @@ def load_to_duckdb(con, weather_df, air_quality_df, start_date, end_date):
     print(f"Loaded {len(df)} rows into raw_weather_hourly ({start_date} to {end_date})")
 
 
+def main():
+    con = duckdb.connect(DUCKDB_FILE)
+    ensure_table(con)
+
+    start_date, end_date = get_date_range(con)
+    if start_date is None:
+        con.close()
+        return
+
+    print(f"Fetching weather + air quality data from {start_date} to {end_date}...")
+    weather_df = fetch_weather(start_date, end_date)
+    air_quality_df = fetch_air_quality(start_date, end_date)
+
+    load_to_duckdb(con, weather_df, air_quality_df, start_date, end_date)
+    con.close()
+
+
 if __name__ == "__main__":
-    pass
+    main()
