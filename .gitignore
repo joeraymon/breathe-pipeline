@@ -1,3 +1,4 @@
 *.duckdb
 breathe-gcp-credentials.json
 logs
+.worktrees
