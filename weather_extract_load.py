@@ -82,5 +82,35 @@ def fetch_weather(start_date, end_date):
     })
 
 
+def fetch_air_quality(start_date, end_date):
+    """
+    Fetch hourly air quality data from Open-Meteo.
+    Returns None (with a warning) if the API fails or data is unavailable.
+    """
+    params = {
+        "latitude": LAT,
+        "longitude": LON,
+        "start_date": start_date.isoformat(),
+        "end_date": end_date.isoformat(),
+        "hourly": "pm2_5,ozone,us_aqi",
+        "timezone": "America/Chicago",
+    }
+    try:
+        resp = requests.get(AIR_QUALITY_API, params=params, timeout=30)
+        resp.raise_for_status()
+        data = resp.json()["hourly"]
+        return pd.DataFrame({
+            "timestamp": pd.to_datetime(data["time"]),
+            "pm2_5": data["pm2_5"],
+            "ozone": data["ozone"],
+            "us_aqi": data["us_aqi"],
+        })
+    except Exception as e:
+        print(
+            f"Warning: air quality data unavailable for {start_date} to {end_date}: {e}"
+        )
+        return None
+
+
 if __name__ == "__main__":
     pass

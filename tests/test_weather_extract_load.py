@@ -84,3 +84,33 @@ def test_fetch_weather():
     ]
     assert df["temperature_c"].iloc[0] == 18.5
     assert df["humidity_pct"].iloc[1] == 67.0
+
+
+MOCK_AQ_RESPONSE = {
+    "hourly": {
+        "time": ["2024-06-01T00:00", "2024-06-01T01:00"],
+        "pm2_5": [8.2, 9.1],
+        "ozone": [55.0, 54.0],
+        "us_aqi": [35, 38],
+    }
+}
+
+
+def test_fetch_air_quality():
+    with patch("weather_extract_load.requests.get") as mock_get:
+        mock_get.return_value.json.return_value = MOCK_AQ_RESPONSE
+        mock_get.return_value.raise_for_status = MagicMock()
+        df = wel.fetch_air_quality(date(2024, 6, 1), date(2024, 6, 1))
+
+    assert len(df) == 2
+    assert list(df.columns) == ["timestamp", "pm2_5", "ozone", "us_aqi"]
+    assert df["us_aqi"].iloc[0] == 35
+
+
+def test_fetch_air_quality_returns_none_on_error():
+    """If the air quality API fails, return None (not an exception)."""
+    with patch("weather_extract_load.requests.get") as mock_get:
+        mock_get.return_value.raise_for_status.side_effect = Exception("503 error")
+        result = wel.fetch_air_quality(date(2020, 1, 1), date(2020, 1, 1))
+
+    assert result is None
