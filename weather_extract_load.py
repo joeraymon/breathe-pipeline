@@ -130,7 +130,14 @@ def load_to_duckdb(con, weather_df, air_quality_df, start_date, end_date):
         WHERE timestamp::DATE >= ? AND timestamp::DATE <= ?
     """, [start_date, end_date])
 
-    con.execute("INSERT INTO raw_weather_hourly SELECT * FROM df")
+    con.execute("""
+        INSERT INTO raw_weather_hourly
+            (timestamp, temperature_c, humidity_pct, precipitation_mm, pressure_hpa,
+             pm2_5, ozone, us_aqi)
+        SELECT timestamp, temperature_c, humidity_pct, precipitation_mm, pressure_hpa,
+               pm2_5, ozone, us_aqi
+        FROM df
+    """)
     print(f"Loaded {len(df)} rows into raw_weather_hourly ({start_date} to {end_date})")
 
 

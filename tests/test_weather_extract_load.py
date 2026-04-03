@@ -147,6 +147,7 @@ def test_load_to_duckdb_with_air_quality(con, weather_df, aq_df):
         "SELECT pm2_5, ozone, us_aqi FROM raw_weather_hourly ORDER BY timestamp LIMIT 1"
     ).fetchone()
     assert row[0] == 8.2
+    assert row[1] == 55.0
     assert row[2] == 35
 
 
