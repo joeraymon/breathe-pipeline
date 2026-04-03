@@ -114,3 +114,58 @@ def test_fetch_air_quality_returns_none_on_error():
         result = wel.fetch_air_quality(date(2020, 1, 1), date(2020, 1, 1))
 
     assert result is None
+
+
+@pytest.fixture
+def weather_df():
+    return pd.DataFrame({
+        "timestamp": pd.to_datetime(["2024-06-01T00:00", "2024-06-01T01:00"]),
+        "temperature_c": [18.5, 17.9],
+        "humidity_pct": [65.0, 67.0],
+        "precipitation_mm": [0.0, 0.1],
+        "pressure_hpa": [1013.0, 1012.8],
+    })
+
+
+@pytest.fixture
+def aq_df():
+    return pd.DataFrame({
+        "timestamp": pd.to_datetime(["2024-06-01T00:00", "2024-06-01T01:00"]),
+        "pm2_5": [8.2, 9.1],
+        "ozone": [55.0, 54.0],
+        "us_aqi": [35, 38],
+    })
+
+
+def test_load_to_duckdb_with_air_quality(con, weather_df, aq_df):
+    """Merges weather + air quality and inserts all columns."""
+    wel.ensure_table(con)
+    wel.load_to_duckdb(con, weather_df, aq_df, date(2024, 6, 1), date(2024, 6, 1))
+    count = con.execute("SELECT COUNT(*) FROM raw_weather_hourly").fetchone()[0]
+    assert count == 2
+    row = con.execute(
+        "SELECT pm2_5, ozone, us_aqi FROM raw_weather_hourly ORDER BY timestamp LIMIT 1"
+    ).fetchone()
+    assert row[0] == 8.2
+    assert row[2] == 35
+
+
+def test_load_to_duckdb_without_air_quality(con, weather_df):
+    """When air quality fetch failed, air quality columns are NULL."""
+    wel.ensure_table(con)
+    wel.load_to_duckdb(con, weather_df, None, date(2024, 6, 1), date(2024, 6, 1))
+    row = con.execute(
+        "SELECT pm2_5, ozone, us_aqi FROM raw_weather_hourly LIMIT 1"
+    ).fetchone()
+    assert row[0] is None
+    assert row[1] is None
+    assert row[2] is None
+
+
+def test_load_to_duckdb_is_idempotent(con, weather_df):
+    """Re-loading the same date range does not duplicate rows."""
+    wel.ensure_table(con)
+    wel.load_to_duckdb(con, weather_df, None, date(2024, 6, 1), date(2024, 6, 1))
+    wel.load_to_duckdb(con, weather_df, None, date(2024, 6, 1), date(2024, 6, 1))
+    count = con.execute("SELECT COUNT(*) FROM raw_weather_hourly").fetchone()[0]
+    assert count == 2

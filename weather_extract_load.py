@@ -112,5 +112,27 @@ def fetch_air_quality(start_date, end_date):
         return None
 
 
+def load_to_duckdb(con, weather_df, air_quality_df, start_date, end_date):
+    """
+    Merge weather and air quality DataFrames, delete the date range, and re-insert.
+    Passing None for air_quality_df fills those columns with NULL.
+    """
+    if air_quality_df is not None:
+        df = weather_df.merge(air_quality_df, on="timestamp", how="left")
+    else:
+        df = weather_df.copy()
+        df["pm2_5"] = None
+        df["ozone"] = None
+        df["us_aqi"] = None
+
+    con.execute("""
+        DELETE FROM raw_weather_hourly
+        WHERE timestamp::DATE >= ? AND timestamp::DATE <= ?
+    """, [start_date, end_date])
+
+    con.execute("INSERT INTO raw_weather_hourly SELECT * FROM df")
+    print(f"Loaded {len(df)} rows into raw_weather_hourly ({start_date} to {end_date})")
+
+
 if __name__ == "__main__":
     pass
