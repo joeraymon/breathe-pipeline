@@ -1,0 +1,1 @@
+select * from inhaler_usage_weekly

@@ -1,0 +1,4 @@
+name: breathe
+type: duckdb
+options:
+  filename: breathe_dev.duckdb

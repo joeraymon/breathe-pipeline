@@ -1,0 +1,1 @@
+select * from severity_daily
