@@ -1,0 +1,47 @@
+version: 2
+
+models:
+  - name: stg_breathe
+    description: >
+      Staged events from raw_breathe. Each row is one logged event.
+      session_id is used to group Wim Hof rounds: all rounds in one session
+      share the same logged_at timestamp and therefore the same session_id.
+    columns:
+      - name: logged_at
+        description: Timestamp when the event was logged.
+        tests:
+          - not_null
+      - name: session_id
+        description: >
+          logged_at cast to varchar. Used as a session grouping key for
+          wim_hof entries — all rounds submitted together share the same value.
+        tests:
+          - not_null
+      - name: entry_type
+        description: >
+          Type of event. Values: severity, rescue, wim_hof, control_pause,
+          preventative_inhaler, zyrtec, allergy_shot.
+        tests:
+          - not_null
+          - accepted_values:
+              values:
+                - severity
+                - rescue
+                - wim_hof
+                - control_pause
+                - preventative_inhaler
+                - zyrtec
+                - allergy_shot
+      - name: severity_level
+        description: >
+          Integer value whose meaning depends on entry_type.
+          For severity: 0–3 scale. For wim_hof: retention hold in seconds.
+          For control_pause: duration in seconds. Null for all other types.
+      - name: severity_label
+        description: >
+          String label whose meaning depends on entry_type.
+          For severity: Clear/Mild/Noticeable/Severe.
+          For wim_hof: round_1, round_2, etc.
+          Null for other types.
+      - name: note
+        description: Optional free-text note. Null if not provided.
