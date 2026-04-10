@@ -1,0 +1,61 @@
+version: 2
+
+models:
+  - name: wim_hof_sessions
+    description: >
+      One row per Wim Hof session. Rounds are grouped by session_id
+      (all rounds submitted at the same time share a session_id).
+    columns:
+      - name: session_id
+        description: Unique session identifier (logged_at as varchar).
+        tests:
+          - not_null
+          - unique
+      - name: logged_at
+        description: Timestamp of the session submission.
+        tests:
+          - not_null
+      - name: round_count
+        description: Number of rounds in the session.
+        tests:
+          - not_null
+      - name: max_retention_s
+        description: Longest hold time in the session, in seconds.
+      - name: avg_retention_s
+        description: Average hold time across rounds, in seconds, rounded to 1 decimal.
+      - name: total_retention_s
+        description: Sum of all hold times in the session, in seconds.
+      - name: note
+        description: Session note (carried from round_1 row).
+
+  - name: control_pause_events
+    description: >
+      One row per Control Pause measurement. Duration is in seconds.
+    columns:
+      - name: logged_at
+        description: Timestamp when the measurement was taken.
+        tests:
+          - not_null
+      - name: duration_s
+        description: Control pause hold duration in seconds.
+      - name: note
+        description: Optional note.
+
+  - name: med_adherence_daily
+    description: >
+      Daily counts of each medication/intervention type. One row per day
+      that has at least one med event.
+    columns:
+      - name: date
+        description: Calendar date.
+        tests:
+          - not_null
+          - unique
+      - name: preventative_inhaler_count
+        description: Number of preventative inhaler doses logged.
+      - name: rescue_count
+        description: Number of rescue inhaler uses logged.
+      - name: zyrtec_count
+        description: Number of Zyrtec doses logged.
+      - name: allergy_shot_count
+        description: Number of allergy shots logged.
