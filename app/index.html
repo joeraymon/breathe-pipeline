@@ -457,7 +457,7 @@ function doPost(e) {
     const note = document.getElementById("note").value.trim();
     const row = { ts: new Date().toISOString(), type: "severity", level: s.level, label: s.label, note: note || undefined };
 
-    await submitRow(row, "log-btn", "LOG",
+    await submitRow(row, "log-btn",
       state => { severityState = state; updateSeverityUI(); },
       () => {
         selected = null;
@@ -509,7 +509,16 @@ function doPost(e) {
       }
     });
 
-    if (rows.length === 0) return;
+    if (rows.length === 0) {
+      const btn = document.getElementById("wh-log-btn");
+      btn.className = "log-btn error";
+      btn.textContent = "add a round first";
+      setTimeout(() => {
+        btn.className = "log-btn ready";
+        btn.textContent = "LOG SESSION";
+      }, 1800);
+      return;
+    }
 
     const btn = document.getElementById("wh-log-btn");
     const url = localStorage.getItem("breathe_url") || "";
@@ -558,7 +567,7 @@ function doPost(e) {
     const row = { ts: new Date().toISOString(), type: "control_pause", level: seconds };
     const btn = document.getElementById("cp-log-btn");
 
-    await submitRow(row, "cp-log-btn", "LOG",
+    await submitRow(row, "cp-log-btn",
       state => {
         cpState = state;
         btn.className = "log-btn" + (
@@ -584,7 +593,7 @@ function doPost(e) {
 
     btnEl.className = "med-btn sending";
     try {
-      if (!url) throw new Error("no url");
+      if (!url) throw new Error("No URL — configure in settings.");
       await fetch(url, {
         method: "POST",
         mode: "no-cors",
@@ -608,7 +617,7 @@ function doPost(e) {
   }
 
   // ── Shared submit helper ───────────────────────────────────────────────────
-  async function submitRow(row, btnId, btnLabel, setState, onReset) {
+  async function submitRow(row, btnId, setState, onReset) {
     const url = localStorage.getItem("breathe_url") || "";
     const btn = document.getElementById(btnId);
     setState("sending");
