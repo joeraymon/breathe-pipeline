@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  <meta name="theme-color" content="#0a0a0a" />
+  <title>breathe</title>
+  <link rel="apple-touch-icon" href="icon.png" />
+  <link rel="icon" type="image/png" href="icon.png" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; background: #0a0a0a; }
+    body { font-family: 'DM Mono', monospace; -webkit-font-smoothing: antialiased; }
+    textarea, input { caret-color: #5cb8a0; font-family: 'DM Mono', monospace; }
+    button { font-family: 'DM Mono', monospace; }
+    ::-webkit-scrollbar { width: 0; }
+
+    #app {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+      padding-bottom: calc(24px + env(safe-area-inset-bottom));
+    }
+
+    .container {
+      width: 100%;
+      max-width: 380px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+    .wordmark {
+      font-size: 22px;
+      font-style: italic;
+      font-weight: 300;
+      color: #d0d0d0;
+      letter-spacing: -0.02em;
+    }
+    .settings-btn {
+      background: none;
+      border: none;
+      color: #5a6a74;
+      cursor: pointer;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      padding: 4px;
+    }
+    .settings-btn:hover { color: #8a9aaa; }
+
+    /* Scale */
+    .scale { display: flex; flex-direction: column; gap: 8px; }
+    .scale-btn {
+      padding: 16px 18px;
+      border-radius: 12px;
+      text-align: left;
+      border: 1.5px solid #1e1e1e;
+      background: #111;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      width: 100%;
+    }
+    .scale-btn:active { opacity: 0.8; }
+    .scale-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      background: #3a4a54;
+      transition: background 0.15s;
+    }
+    .scale-label {
+      font-size: 12px;
+      font-weight: 500;
+      margin-bottom: 3px;
+      color: #7a8e9a;
+    }
+    .scale-desc {
+      font-size: 11px;
+      color: #4a5e6a;
+      line-height: 1.5;
+    }
+
+    /* Note */
+    .note {
+      background: #111;
+      border: 1.5px solid #1e1e1e;
+      border-radius: 10px;
+      padding: 12px 14px;
+      color: #8a9aaa;
+      font-size: 11px;
+      resize: none;
+      outline: none;
+      line-height: 1.6;
+      width: 100%;
+    }
+    .note::placeholder { color: #3a4a54; }
+
+    /* Log button */
+    .log-btn {
+      padding: 16px;
+      border-radius: 12px;
+      border: none;
+      background: #111;
+      color: #3a4a54;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      cursor: not-allowed;
+      transition: all 0.2s;
+      width: 100%;
+    }
+    .log-btn.ready { background: #1a1a1a; cursor: pointer; }
+    .log-btn.sending { cursor: wait; }
+    .log-btn.done { background: #1a2e28; color: #5cb8a0; }
+    .log-btn.error { background: #2e1a1a; color: #c45a5a; }
+
+    /* Rescue */
+    .rescue-btn {
+      padding: 12px;
+      border-radius: 10px;
+      border: 1.5px solid #2e1e1e;
+      background: transparent;
+      color: #6a3a3a;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      transition: all 0.15s;
+      width: 100%;
+    }
+    .rescue-btn:hover { color: #8a5050; border-color: #3e2828; }
+    .rescue-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .overlay {
+      position: fixed; inset: 0;
+      background: #080808ee;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      z-index: 100;
+      padding: 20px;
+      padding-bottom: calc(20px + env(safe-area-inset-bottom));
+    }
+    .settings-panel {
+      width: 100%;
+      max-width: 420px;
+      background: #111;
+      border-radius: 20px;
+      padding: 28px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .settings-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .settings-title { font-size: 12px; color: #5a6a74; letter-spacing: 0.1em; }
+    .close-btn { background: none; border: none; color: #5a6a74; cursor: pointer; font-size: 16px; }
+    .url-input {
+      background: #0d0d0d;
+      border: 1.5px solid #1e1e1e;
+      border-radius: 10px;
+      padding: 12px 14px;
+      color: #8a9aaa;
+      font-size: 11px;
+      outline: none;
+      width: 100%;
+    }
+    .url-input::placeholder { color: #3a4a54; }
+    .save-btn {
+      padding: 13px;
+      border-radius: 10px;
+      border: none;
+      background: #1a1a1a;
+      color: #7a8e9a;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      transition: all 0.2s;
+      width: 100%;
+    }
+    .save-btn.saved { background: #1a2e28; color: #5cb8a0; }
+    .code-block {
+      font-size: 10px;
+      color: #4a5e6a;
+      line-height: 1.9;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+
+<div id="app">
+  <div class="container">
+    <div class="header">
+      <span class="wordmark">breathe</span>
+      <button class="settings-btn" onclick="openSettings()">⚙ settings</button>
+    </div>
+
+    <div class="scale" id="scale"></div>
+
+    <textarea class="note" id="note" rows="2" placeholder="note (optional)"></textarea>
+
+    <button class="log-btn" id="log-btn" onclick="logEntry('severity')">LOG</button>
+
+    <button class="rescue-btn" id="rescue-btn" onclick="logEntry('rescue')">+ RESCUE INHALER</button>
+  </div>
+</div>
+
+<!-- Settings overlay -->
+<div class="overlay" id="overlay" style="display:none;">
+  <div class="settings-panel">
+    <div class="settings-header">
+      <span class="settings-title">GOOGLE SHEETS URL</span>
+      <button class="close-btn" onclick="closeSettings()">✕</button>
+    </div>
+    <input class="url-input" id="url-input" placeholder="https://script.google.com/macros/s/..." />
+    <button class="save-btn" id="save-btn" onclick="saveUrl()">SAVE</button>
+    <div class="code-block">Apps Script setup:
+1. script.google.com → New project
+2. Paste this code:
+
+function doPost(e) {
+  const data = JSON.parse(e.postData.contents);
+  SpreadsheetApp
+    .getActiveSpreadsheet()
+    .getActiveSheet()
+    .appendRow([
+      data.ts,
+      data.type,
+      data.level !== undefined ? data.level : "",
+      data.label || "",
+      data.note || ""
+    ]);
+  return ContentService.createTextOutput("ok");
+}
+
+3. Deploy → Web app
+   Execute as: Me
+   Access: Anyone
+4. Copy the URL → paste above</div>
+  </div>
+</div>
+
+<script>
+  const SCALE = [
+    { level: 0, label: "Clear",      desc: "Deep breath is open. No wheeze, no constriction.", color: "#5cb8a0" },
+    { level: 1, label: "Mild",       desc: "Slight constriction. Sniffly, scratchy throat.",    color: "#c8b84a" },
+    { level: 2, label: "Noticeable", desc: "Affecting behavior. Feeling anxious about it.",     color: "#d4804a" },
+    { level: 3, label: "Severe",     desc: "Rescue inhaler imminent.",                          color: "#c45a5a" },
+  ];
+
+  let selected = null;
+  let appState = "idle"; // idle | sending | done | error
+
+  // ── Render scale ───────────────────────────────────────────────────────────
+  function renderScale() {
+    const container = document.getElementById("scale");
+    container.innerHTML = "";
+    SCALE.forEach(s => {
+      const btn = document.createElement("button");
+      btn.className = "scale-btn";
+      btn.id = `scale-${s.level}`;
+      btn.innerHTML = `
+        <div class="scale-dot" id="dot-${s.level}"></div>
+        <div>
+          <div class="scale-label" id="lbl-${s.level}">${s.level} — ${s.label}</div>
+          <div class="scale-desc" id="dsc-${s.level}">${s.desc}</div>
+        </div>`;
+      btn.onclick = () => selectLevel(s.level);
+      container.appendChild(btn);
+    });
+  }
+
+  function selectLevel(level) {
+    if (appState !== "idle") return;
+    selected = selected === level ? null : level;
+    updateUI();
+  }
+
+  function updateUI() {
+    SCALE.forEach(s => {
+      const btn = document.getElementById(`scale-${s.level}`);
+      const dot = document.getElementById(`dot-${s.level}`);
+      const lbl = document.getElementById(`lbl-${s.level}`);
+      const dsc = document.getElementById(`dsc-${s.level}`);
+      const active = selected === s.level;
+      btn.style.border = active ? `1.5px solid ${s.color}55` : "1.5px solid #1e1e1e";
+      btn.style.background = active ? `${s.color}18` : "#111";
+      dot.style.background = active ? s.color : "#3a4a54";
+      lbl.style.color = active ? s.color : "#7a8e9a";
+      dsc.style.color = active ? "#7a8e9a" : "#4a5e6a";
+    });
+
+    const logBtn = document.getElementById("log-btn");
+    const rescueBtn = document.getElementById("rescue-btn");
+    const canLog = selected !== null && appState === "idle";
+
+    logBtn.className = "log-btn" + (
+      appState === "done"    ? " done"    :
+      appState === "error"   ? " error"   :
+      appState === "sending" ? " sending" :
+      canLog                 ? " ready"   : ""
+    );
+    logBtn.style.color =
+      appState === "done"  ? "#5cb8a0" :
+      appState === "error" ? "#c45a5a" :
+      canLog ? SCALE[selected].color : "#3a4a54";
+
+    rescueBtn.disabled = appState !== "idle";
+  }
+
+  // ── Logging ────────────────────────────────────────────────────────────────
+  async function logEntry(type) {
+    if (appState !== "idle") return;
+    if (type === "severity" && selected === null) return;
+
+    const url = localStorage.getItem("breathe_url") || "";
+    const note = document.getElementById("note").value.trim();
+    const s = type === "severity" ? SCALE[selected] : null;
+
+    const row = {
+      ts:    new Date().toISOString(),
+      type,
+      level: s ? s.level : undefined,
+      label: s ? s.label : "Rescue",
+      note:  note || undefined,
+    };
+
+    appState = "sending";
+    document.getElementById("log-btn").textContent = "LOGGING...";
+    updateUI();
+
+    try {
+      if (!url) throw new Error("No URL — configure in settings.");
+      await fetch(url, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(row),
+      });
+      appState = "done";
+      document.getElementById("log-btn").textContent = "✓ LOGGED";
+      updateUI();
+      setTimeout(reset, 1400);
+    } catch(e) {
+      appState = "error";
+      document.getElementById("log-btn").textContent = "✕ " + (e.message || "Error");
+      updateUI();
+      setTimeout(reset, 2500);
+    }
+  }
+
+  function reset() {
+    selected = null;
+    appState = "idle";
+    document.getElementById("note").value = "";
+    document.getElementById("log-btn").textContent = "LOG";
+    updateUI();
+  }
+
+  // ── Settings ───────────────────────────────────────────────────────────────
+  function openSettings() {
+    document.getElementById("url-input").value = localStorage.getItem("breathe_url") || "";
+    document.getElementById("save-btn").textContent = "SAVE";
+    document.getElementById("save-btn").className = "save-btn";
+    document.getElementById("overlay").style.display = "flex";
+  }
+
+  function closeSettings() {
+    document.getElementById("overlay").style.display = "none";
+  }
+
+  function saveUrl() {
+    const url = document.getElementById("url-input").value.trim();
+    localStorage.setItem("breathe_url", url);
+    const btn = document.getElementById("save-btn");
+    btn.textContent = "✓ SAVED";
+    btn.className = "save-btn saved";
+    setTimeout(closeSettings, 900);
+  }
+
+  // Close overlay on background tap
+  document.getElementById("overlay").addEventListener("click", function(e) {
+    if (e.target === this) closeSettings();
+  });
+
+  // ── Init ───────────────────────────────────────────────────────────────────
+  renderScale();
+  updateUI();
+</script>
+</body>
+</html>
