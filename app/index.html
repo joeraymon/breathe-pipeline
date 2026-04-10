@@ -22,8 +22,9 @@
       min-height: 100vh;
       display: flex;
       justify-content: center;
-      align-items: center;
+      align-items: flex-start;
       padding: 24px;
+      padding-top: calc(24px + env(safe-area-inset-top));
       padding-bottom: calc(24px + env(safe-area-inset-bottom));
     }
 
@@ -58,6 +59,31 @@
       padding: 4px;
     }
     .settings-btn:hover { color: #8a9aaa; }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      border-bottom: 1.5px solid #1e1e1e;
+    }
+    .tab-btn {
+      background: none;
+      border: none;
+      border-bottom: 1.5px solid transparent;
+      margin-bottom: -1.5px;
+      color: #3a4a54;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      padding: 8px 14px 10px;
+      cursor: pointer;
+      transition: color 0.15s;
+    }
+    .tab-btn:first-child { padding-left: 0; }
+    .tab-btn.active { color: #8a9aaa; border-bottom-color: #5cb8a0; }
+    .tab-btn:hover:not(.active) { color: #5a6a74; }
+
+    /* Tab content */
+    .tab-content { display: none; flex-direction: column; gap: 16px; }
+    .tab-content.active { display: flex; }
 
     /* Scale */
     .scale { display: flex; flex-direction: column; gap: 8px; }
@@ -94,20 +120,19 @@
       line-height: 1.5;
     }
 
-    /* Note */
-    .note {
+    /* Shared text inputs */
+    .note, .seconds-input {
       background: #111;
       border: 1.5px solid #1e1e1e;
       border-radius: 10px;
       padding: 12px 14px;
       color: #8a9aaa;
       font-size: 11px;
-      resize: none;
       outline: none;
-      line-height: 1.6;
       width: 100%;
     }
-    .note::placeholder { color: #3a4a54; }
+    .note { resize: none; line-height: 1.6; }
+    .note::placeholder, .seconds-input::placeholder { color: #3a4a54; }
 
     /* Log button */
     .log-btn {
@@ -123,27 +148,87 @@
       transition: all 0.2s;
       width: 100%;
     }
-    .log-btn.ready { background: #1a1a1a; cursor: pointer; }
+    .log-btn.ready { background: #1a1a1a; cursor: pointer; color: #7a8e9a; }
     .log-btn.sending { cursor: wait; }
     .log-btn.done { background: #1a2e28; color: #5cb8a0; }
     .log-btn.error { background: #2e1a1a; color: #c45a5a; }
 
-    /* Rescue */
-    .rescue-btn {
-      padding: 12px;
+    /* Section label */
+    .section-label {
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      color: #3a4a54;
+      padding-top: 4px;
+    }
+
+    /* Wim Hof round rows */
+    .rounds-list { display: flex; flex-direction: column; gap: 8px; }
+    .round-row { display: flex; gap: 8px; align-items: center; }
+    .round-label {
+      font-size: 10px;
+      color: #3a4a54;
+      letter-spacing: 0.08em;
+      white-space: nowrap;
+      width: 52px;
+      flex-shrink: 0;
+    }
+    .round-input {
+      background: #111;
+      border: 1.5px solid #1e1e1e;
       border-radius: 10px;
-      border: 1.5px solid #2e1e1e;
+      padding: 10px 14px;
+      color: #8a9aaa;
+      font-size: 11px;
+      outline: none;
+      flex: 1;
+    }
+    .round-input::placeholder { color: #3a4a54; }
+    .remove-round-btn {
+      background: none;
+      border: none;
+      color: #3a4a54;
+      cursor: pointer;
+      font-size: 14px;
+      padding: 4px 6px;
+      line-height: 1;
+    }
+    .remove-round-btn:hover { color: #6a3a3a; }
+    .add-round-btn {
+      background: none;
+      border: none;
+      color: #3a4a54;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      text-align: left;
+      padding: 0;
+      transition: color 0.15s;
+    }
+    .add-round-btn:hover { color: #5a6a74; }
+
+    /* Divider */
+    .divider { border: none; border-top: 1px solid #1a1a1a; margin: 4px 0; }
+
+    /* Med buttons */
+    .med-btn {
+      padding: 16px;
+      border-radius: 12px;
+      border: 1.5px solid #1e2e24;
       background: transparent;
-      color: #6a3a3a;
+      color: #3a5a4a;
       font-size: 11px;
       letter-spacing: 0.1em;
       cursor: pointer;
       transition: all 0.15s;
       width: 100%;
+      text-align: left;
     }
-    .rescue-btn:hover { color: #8a5050; border-color: #3e2828; }
-    .rescue-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .med-btn:hover { color: #5cb8a0; border-color: #2a4a3a; }
+    .med-btn.sending { opacity: 0.6; cursor: wait; }
+    .med-btn.done { background: #1a2e28; color: #5cb8a0; border-color: #2a4a3a; }
+    .med-btn.error { background: #2e1a1a; color: #c45a5a; border-color: #3e2828; }
 
+    /* Settings overlay */
     .overlay {
       position: fixed; inset: 0;
       background: #080808ee;
@@ -213,13 +298,39 @@
       <button class="settings-btn" onclick="openSettings()">⚙ settings</button>
     </div>
 
-    <div class="scale" id="scale"></div>
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('symptoms')">symptoms</button>
+      <button class="tab-btn" onclick="switchTab('breathe')">breathe</button>
+      <button class="tab-btn" onclick="switchTab('meds')">meds</button>
+    </div>
 
-    <textarea class="note" id="note" rows="2" placeholder="note (optional)"></textarea>
+    <!-- symptoms tab -->
+    <div class="tab-content active" id="tab-symptoms">
+      <div class="scale" id="scale"></div>
+      <textarea class="note" id="note" rows="2" placeholder="note (optional)"></textarea>
+      <button class="log-btn" id="log-btn" onclick="logSeverity()">LOG</button>
+    </div>
 
-    <button class="log-btn" id="log-btn" onclick="logEntry('severity')">LOG</button>
+    <!-- breathe tab -->
+    <div class="tab-content" id="tab-breathe">
+      <div class="section-label">WIM HOF</div>
+      <div class="rounds-list" id="rounds-list"></div>
+      <button class="add-round-btn" onclick="addRound()">+ add round</button>
+      <textarea class="note" id="wh-note" rows="2" placeholder="session note (optional)"></textarea>
+      <button class="log-btn ready" id="wh-log-btn" onclick="logWimHof()">LOG SESSION</button>
+      <hr class="divider" />
+      <div class="section-label">CONTROL PAUSE</div>
+      <input type="number" class="seconds-input" id="cp-seconds" placeholder="seconds" min="1" />
+      <button class="log-btn ready" id="cp-log-btn" onclick="logControlPause()">LOG</button>
+    </div>
 
-    <button class="rescue-btn" id="rescue-btn" onclick="logEntry('rescue')">+ RESCUE INHALER</button>
+    <!-- meds tab -->
+    <div class="tab-content" id="tab-meds">
+      <button class="med-btn" onclick="logMed('preventative_inhaler', this)">PREVENTATIVE INHALER</button>
+      <button class="med-btn" onclick="logMed('rescue', this)">RESCUE INHALER</button>
+      <button class="med-btn" onclick="logMed('zyrtec', this)">ZYRTEC</button>
+      <button class="med-btn" onclick="logMed('allergy_shot', this)">ALLERGY SHOT</button>
+    </div>
   </div>
 </div>
 
@@ -238,16 +349,19 @@
 
 function doPost(e) {
   const data = JSON.parse(e.postData.contents);
-  SpreadsheetApp
+  const sheet = SpreadsheetApp
     .getActiveSpreadsheet()
-    .getActiveSheet()
-    .appendRow([
-      data.ts,
-      data.type,
-      data.level !== undefined ? data.level : "",
-      data.label || "",
-      data.note || ""
+    .getActiveSheet();
+  const rows = Array.isArray(data) ? data : [data];
+  rows.forEach(row => {
+    sheet.appendRow([
+      row.ts,
+      row.type,
+      row.level !== undefined ? row.level : "",
+      row.label || "",
+      row.note || ""
     ]);
+  });
   return ContentService.createTextOutput("ok");
 }
 
@@ -267,9 +381,23 @@ function doPost(e) {
   ];
 
   let selected = null;
-  let appState = "idle"; // idle | sending | done | error
+  let severityState = "idle";
+  let cpState = "idle";
+  let whState = "idle";
+  let roundCount = 0;
 
-  // ── Render scale ───────────────────────────────────────────────────────────
+  // ── Tabs ───────────────────────────────────────────────────────────────────
+  function switchTab(name) {
+    const names = ['symptoms', 'breathe', 'meds'];
+    document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+      btn.classList.toggle('active', names[i] === name);
+    });
+    document.querySelectorAll('.tab-content').forEach(el => {
+      el.classList.toggle('active', el.id === 'tab-' + name);
+    });
+  }
+
+  // ── Scale ──────────────────────────────────────────────────────────────────
   function renderScale() {
     const container = document.getElementById("scale");
     container.innerHTML = "";
@@ -289,12 +417,12 @@ function doPost(e) {
   }
 
   function selectLevel(level) {
-    if (appState !== "idle") return;
+    if (severityState !== "idle") return;
     selected = selected === level ? null : level;
-    updateUI();
+    updateSeverityUI();
   }
 
-  function updateUI() {
+  function updateSeverityUI() {
     SCALE.forEach(s => {
       const btn = document.getElementById(`scale-${s.level}`);
       const dot = document.getElementById(`dot-${s.level}`);
@@ -309,43 +437,182 @@ function doPost(e) {
     });
 
     const logBtn = document.getElementById("log-btn");
-    const rescueBtn = document.getElementById("rescue-btn");
-    const canLog = selected !== null && appState === "idle";
-
+    const canLog = selected !== null && severityState === "idle";
     logBtn.className = "log-btn" + (
-      appState === "done"    ? " done"    :
-      appState === "error"   ? " error"   :
-      appState === "sending" ? " sending" :
-      canLog                 ? " ready"   : ""
+      severityState === "done"    ? " done"    :
+      severityState === "error"   ? " error"   :
+      severityState === "sending" ? " sending" :
+      canLog                      ? " ready"   : ""
     );
     logBtn.style.color =
-      appState === "done"  ? "#5cb8a0" :
-      appState === "error" ? "#c45a5a" :
+      severityState === "done"  ? "#5cb8a0" :
+      severityState === "error" ? "#c45a5a" :
       canLog ? SCALE[selected].color : "#3a4a54";
-
-    rescueBtn.disabled = appState !== "idle";
   }
 
-  // ── Logging ────────────────────────────────────────────────────────────────
-  async function logEntry(type) {
-    if (appState !== "idle") return;
-    if (type === "severity" && selected === null) return;
-
-    const url = localStorage.getItem("breathe_url") || "";
+  // ── Severity logging ───────────────────────────────────────────────────────
+  async function logSeverity() {
+    if (severityState !== "idle" || selected === null) return;
+    const s = SCALE[selected];
     const note = document.getElementById("note").value.trim();
-    const s = type === "severity" ? SCALE[selected] : null;
+    const row = { ts: new Date().toISOString(), type: "severity", level: s.level, label: s.label, note: note || undefined };
 
-    const row = {
-      ts:    new Date().toISOString(),
-      type,
-      level: s ? s.level : undefined,
-      label: s ? s.label : "Rescue",
-      note:  note || undefined,
-    };
+    await submitRow(row, "log-btn", "LOG",
+      state => { severityState = state; updateSeverityUI(); },
+      () => {
+        selected = null;
+        severityState = "idle";
+        document.getElementById("note").value = "";
+        document.getElementById("log-btn").textContent = "LOG";
+        updateSeverityUI();
+      }
+    );
+  }
 
-    appState = "sending";
-    document.getElementById("log-btn").textContent = "LOGGING...";
-    updateUI();
+  // ── Wim Hof ────────────────────────────────────────────────────────────────
+  function addRound() {
+    roundCount++;
+    const list = document.getElementById("rounds-list");
+    const row = document.createElement("div");
+    row.className = "round-row";
+    row.id = `round-row-${roundCount}`;
+    row.innerHTML = `
+      <span class="round-label">round ${roundCount}</span>
+      <input type="number" class="round-input" id="round-${roundCount}" placeholder="seconds" min="1" />
+      <button class="remove-round-btn" onclick="removeRound(${roundCount})">✕</button>
+    `;
+    list.appendChild(row);
+  }
+
+  function removeRound(n) {
+    document.getElementById(`round-row-${n}`).remove();
+  }
+
+  async function logWimHof() {
+    if (whState !== "idle") return;
+    const note = document.getElementById("wh-note").value.trim();
+    const ts = new Date().toISOString();
+
+    const rows = [];
+    let roundNum = 0;
+    document.querySelectorAll('#rounds-list .round-input').forEach(input => {
+      const val = parseInt(input.value, 10);
+      if (val > 0) {
+        roundNum++;
+        rows.push({
+          ts,
+          type: "wim_hof",
+          level: val,
+          label: `round_${roundNum}`,
+          note: roundNum === 1 && note ? note : undefined,
+        });
+      }
+    });
+
+    if (rows.length === 0) return;
+
+    const btn = document.getElementById("wh-log-btn");
+    const url = localStorage.getItem("breathe_url") || "";
+    whState = "sending";
+    btn.className = "log-btn sending";
+    btn.textContent = "LOGGING...";
+
+    try {
+      if (!url) throw new Error("No URL — configure in settings.");
+      await fetch(url, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(rows),
+      });
+      whState = "done";
+      btn.className = "log-btn done";
+      btn.textContent = "✓ LOGGED";
+      setTimeout(() => {
+        whState = "idle";
+        btn.className = "log-btn ready";
+        btn.textContent = "LOG SESSION";
+        document.getElementById("rounds-list").innerHTML = "";
+        document.getElementById("wh-note").value = "";
+        roundCount = 0;
+        addRound();
+      }, 1400);
+    } catch(e) {
+      whState = "error";
+      btn.className = "log-btn error";
+      btn.textContent = "✕ " + (e.message || "Error");
+      setTimeout(() => {
+        whState = "idle";
+        btn.className = "log-btn ready";
+        btn.textContent = "LOG SESSION";
+      }, 2500);
+    }
+  }
+
+  // ── Control Pause ──────────────────────────────────────────────────────────
+  async function logControlPause() {
+    if (cpState !== "idle") return;
+    const seconds = parseInt(document.getElementById("cp-seconds").value, 10);
+    if (!seconds || seconds <= 0) return;
+
+    const row = { ts: new Date().toISOString(), type: "control_pause", level: seconds };
+    const btn = document.getElementById("cp-log-btn");
+
+    await submitRow(row, "cp-log-btn", "LOG",
+      state => {
+        cpState = state;
+        btn.className = "log-btn" + (
+          cpState === "done" ? " done" : cpState === "error" ? " error" :
+          cpState === "sending" ? " sending" : " ready"
+        );
+      },
+      () => {
+        cpState = "idle";
+        document.getElementById("cp-seconds").value = "";
+        btn.className = "log-btn ready";
+        btn.textContent = "LOG";
+      }
+    );
+  }
+
+  // ── Meds ───────────────────────────────────────────────────────────────────
+  async function logMed(type, btnEl) {
+    if (btnEl.classList.contains("sending")) return;
+    const originalText = btnEl.textContent;
+    const url = localStorage.getItem("breathe_url") || "";
+    const row = { ts: new Date().toISOString(), type };
+
+    btnEl.className = "med-btn sending";
+    try {
+      if (!url) throw new Error("no url");
+      await fetch(url, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(row),
+      });
+      btnEl.className = "med-btn done";
+      btnEl.textContent = "✓ " + originalText;
+      setTimeout(() => {
+        btnEl.className = "med-btn";
+        btnEl.textContent = originalText;
+      }, 1400);
+    } catch(e) {
+      btnEl.className = "med-btn error";
+      btnEl.textContent = "✕ ERROR";
+      setTimeout(() => {
+        btnEl.className = "med-btn";
+        btnEl.textContent = originalText;
+      }, 2500);
+    }
+  }
+
+  // ── Shared submit helper ───────────────────────────────────────────────────
+  async function submitRow(row, btnId, btnLabel, setState, onReset) {
+    const url = localStorage.getItem("breathe_url") || "";
+    const btn = document.getElementById(btnId);
+    setState("sending");
+    btn.textContent = "LOGGING...";
 
     try {
       if (!url) throw new Error("No URL — configure in settings.");
@@ -355,24 +622,14 @@ function doPost(e) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(row),
       });
-      appState = "done";
-      document.getElementById("log-btn").textContent = "✓ LOGGED";
-      updateUI();
-      setTimeout(reset, 1400);
+      setState("done");
+      btn.textContent = "✓ LOGGED";
+      setTimeout(onReset, 1400);
     } catch(e) {
-      appState = "error";
-      document.getElementById("log-btn").textContent = "✕ " + (e.message || "Error");
-      updateUI();
-      setTimeout(reset, 2500);
+      setState("error");
+      btn.textContent = "✕ " + (e.message || "Error");
+      setTimeout(onReset, 2500);
     }
-  }
-
-  function reset() {
-    selected = null;
-    appState = "idle";
-    document.getElementById("note").value = "";
-    document.getElementById("log-btn").textContent = "LOG";
-    updateUI();
   }
 
   // ── Settings ───────────────────────────────────────────────────────────────
@@ -396,14 +653,14 @@ function doPost(e) {
     setTimeout(closeSettings, 900);
   }
 
-  // Close overlay on background tap
   document.getElementById("overlay").addEventListener("click", function(e) {
     if (e.target === this) closeSettings();
   });
 
   // ── Init ───────────────────────────────────────────────────────────────────
   renderScale();
-  updateUI();
+  updateSeverityUI();
+  addRound();
 </script>
 </body>
 </html>
