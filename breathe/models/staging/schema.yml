@@ -45,3 +45,32 @@ models:
           Null for other types.
       - name: note
         description: Optional free-text note. Null if not provided.
+
+  - name: stg_weather_hourly
+    description: >
+      Staged hourly weather and air quality data from raw_weather_hourly.
+      Sourced from Open-Meteo APIs for Minneapolis, MN.
+    columns:
+      - name: logged_at
+        description: Hourly timestamp.
+        tests:
+          - not_null
+          - unique
+      - name: date
+        description: Calendar date extracted from logged_at.
+        tests:
+          - not_null
+      - name: temperature_c
+        description: Temperature in Celsius.
+      - name: humidity_pct
+        description: Relative humidity %.
+      - name: precipitation_mm
+        description: Hourly precipitation in mm.
+      - name: pressure_hpa
+        description: Barometric pressure in hPa.
+      - name: pm2_5
+        description: Fine particulate matter µg/m³.
+      - name: ozone
+        description: Ozone ppb.
+      - name: us_aqi
+        description: US Air Quality Index.

@@ -38,6 +38,8 @@ models:
           - not_null
       - name: duration_s
         description: Control pause hold duration in seconds.
+        tests:
+          - not_null
       - name: note
         description: Optional note.
 

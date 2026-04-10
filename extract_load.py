@@ -43,6 +43,6 @@ con.execute(f"""
 df['level'] = pd.to_numeric(df['level'], errors='coerce')
 
 con.execute(f"DELETE FROM {TABLE_NAME}")
-con.execute(f"INSERT INTO {TABLE_NAME} SELECT * FROM df")
+con.execute(f"INSERT INTO {TABLE_NAME} (timestamp, type, level, label, note) SELECT timestamp, type, level, label, note FROM df")
 print(f"Loaded {len(df)} rows into {TABLE_NAME}")
 con.close()

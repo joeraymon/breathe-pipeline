@@ -5,6 +5,8 @@ with source as (
 renamed as (
     select
         timestamp::timestamp as logged_at,
+        -- session_id groups wim_hof rounds submitted together.
+        -- Assumes all rounds in one session are submitted atomically (same second).
         cast(timestamp::timestamp as varchar) as session_id,
         type as entry_type,
         level as severity_level,
