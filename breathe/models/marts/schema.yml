@@ -59,3 +59,38 @@ models:
         description: Number of Zyrtec doses logged.
       - name: allergy_shot_count
         description: Number of allergy shots logged.
+
+  - name: daily_summary
+    description: >
+      Master daily fact table joining symptom severity, medication adherence,
+      and weather. One row per calendar day. The primary table for correlation
+      analysis. Uses full outer joins so days with only weather or only med
+      data are not dropped.
+    columns:
+      - name: date
+        description: Calendar date.
+        tests:
+          - not_null
+          - unique
+      - name: avg_severity
+        description: Average symptom severity logged that day (0–3 scale).
+      - name: max_severity
+        description: Maximum severity logged that day.
+      - name: severity_log_count
+        description: Number of severity entries logged that day.
+      - name: preventative_inhaler_count
+        description: Preventative inhaler doses that day.
+      - name: rescue_count
+        description: Rescue inhaler uses that day.
+      - name: zyrtec_count
+        description: Zyrtec doses that day.
+      - name: allergy_shot_count
+        description: Allergy shots that day.
+      - name: avg_temperature_c
+        description: Average temperature in Celsius.
+      - name: avg_humidity_pct
+        description: Average relative humidity %.
+      - name: avg_pm2_5
+        description: Average fine particulate matter µg/m³.
+      - name: max_us_aqi
+        description: Maximum US Air Quality Index value recorded that day.
