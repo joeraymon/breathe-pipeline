@@ -2,3 +2,7 @@
 breathe-gcp-credentials.json
 logs
 .worktrees
+.pytest_cache
+__pycache__
+docs
+.claude
